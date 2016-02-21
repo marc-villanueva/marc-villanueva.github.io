@@ -42,14 +42,33 @@ th,  td {
             this._marksThrown[i] = 0;
         }
         this._marksThrown[25] = 0;
+        this._marksPerTurn = [];
     }
 
     PlayerScorecard.prototype.recordMarks = function(number, numberOfMarks) {
-        this._marksThrown[number] += numberOfMarks > this.marksLeft(number) ? this.marksLeft(number) : numberOfMarks;
+        this._marksThrown[number] += this.marksThatCount(number, numberOfMarks);
+    }
+
+    PlayerScorecard.prototype.recordMarksPerTurn = function(numberOfMarksForTurn) {
+        this._marksPerTurn.push(numberOfMarksForTurn);
+    }
+
+    PlayerScorecard.prototype.marksPerTurn = function() {
+        var sum = 0;
+        var numberOfTurns = this._marksPerTurn.length;
+        for(var i = 0; i < numberOfTurns; i++) {
+            sum += this._marksPerTurn[i];
+        }
+
+        return numberOfTurns == 0 ? 0 : (sum / this._marksPerTurn.length);
     }
 
     PlayerScorecard.prototype.isOpen = function(number) {
         return this._marksThrown[number] < 3;
+    }
+
+    PlayerScorecard.prototype.marksThatCount = function(number, numberOfMarks) {
+        return numberOfMarks > this.marksLeft(number) ? this.marksLeft(number) : numberOfMarks;
     }
 
     PlayerScorecard.prototype.marksThrown = function(number) {
@@ -162,6 +181,8 @@ th,  td {
 
         var playerCard = this._players[playerIndex];
 
+        var marksThisTurn = 0;
+
         for(var i = 0; i < dartScores.length; i++) {
 
             var dartScore = dartScores[i];
@@ -173,13 +194,16 @@ th,  td {
 
                 if(this._shouldScorePoints(playerIndex, dartThrow)) {
                     var numberOfMarksThatScore = this._numberOfMarksThatScore(playerIndex, dartThrow);
+                    marksThisTurn += numberOfMarksThatScore;
                     points = dartThrow.number() * numberOfMarksThatScore;
                 }
-
+                marksThisTurn += playerCard.marksThatCount(dartThrow.number(), dartThrow.numberOfMarks());
                 playerCard.recordMarks(dartThrow.number(), dartThrow.numberOfMarks());
                 playerCard.addPoints(points);
             }
         }
+
+        playerCard.recordMarksPerTurn(marksThisTurn);
     }
 
     CricketGame.prototype._shouldScorePoints = function(playerIndex, dartThrow) {
@@ -227,7 +251,7 @@ th,  td {
     //----------------------------------------------
 
     function GameLogUI(game) {
-        this._id = '#game-log-container table';
+        this._id = '#game-log-container .panel-body table';
         this._game = game;
     }
 
@@ -239,11 +263,7 @@ th,  td {
         }
     }
 
-    GameLogUI.prototype.show = function() {
-        $('#game-log-container').removeClass('hidden');
-    }
-
-    GameLogUI.prototype.refresh = function() {
+    GameLogUI.prototype._drawTurns = function() {
         $(this._id + ' tr:not(:first-child)').remove();
 
         var startingPlayer = this._game.startingPlayerIndex();
@@ -261,6 +281,28 @@ th,  td {
             }
 
         }
+    }
+
+    GameLogUI.prototype._updateMarksPerTurn = function() {
+        var player1Scorecard = this._game.scorecardForPlayer(0);
+        var player1MarksPerTurn = player1Scorecard.marksPerTurn();
+        player1MarksPerTurn = Math.round(player1MarksPerTurn * 100) / 100;
+
+        var player2Scorecard = this._game.scorecardForPlayer(1);
+        var player2MarksPerTurn = player2Scorecard.marksPerTurn();
+        player2MarksPerTurn = Math.round(player2MarksPerTurn * 100) / 100;
+
+        $('#p0_mpt').text(player1MarksPerTurn + ' mpt');
+        $('#p1_mpt').text(player2MarksPerTurn + ' mpt');
+    }
+
+    GameLogUI.prototype.show = function() {
+        $('#game-log-container').removeClass('hidden');
+    }
+
+    GameLogUI.prototype.refresh = function() {
+        this._drawTurns();
+        this._updateMarksPerTurn();
     }
 
     //----------------------------------------------
@@ -368,7 +410,13 @@ th,  td {
 
 <body>
 <div class="row">
-<div class="col-md-8 text-center">
+    <div class="col-md-8 text-center">
+        <div id="current-throw-container" class="alert alert-info" style="margin-bottom: 0; padding: 5px">
+            Player <span id="current-player-label"></span>: <input type="text" id="current-throw" readonly/>
+            <button type="button" id="clear-current-throw" class="btn btn-default btn-xs">Clear</button>
+            <button type="button" id="record-current-throw" class="btn btn-primary btn-xs">Go</button>
+        </div>
+
         <svg id="dartboard" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="787px" height="774px" viewBox="0 0 787 774" enable-background="new 0 0 787 774" xml:space="preserve">
         <g id="areas">
             <g id="s">
@@ -495,11 +543,7 @@ th,  td {
             </tr>
         </table>
 
-        <div id="current-throw-container" class="alert alert-info">
-            Player <span id="current-player-label"></span>: <input type="text" id="current-throw" readonly/>
-            <button type="button" id="clear-current-throw" class="btn btn-default">Clear</button>
-            <button type="button" id="record-current-throw" class="btn btn-primary">Go</button>
-        </div>
+
 
         <br/>
         <div id="game-log-container" class="panel panel-default hidden">
@@ -511,6 +555,14 @@ th,  td {
                     <tr>
                         <th>Player 1</th>
                         <th>Player 2</th>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <table width="100%">
+                    <tr>
+                        <td id="p0_mpt" width="50%"></td>
+                        <td id="p1_mpt" width="50%"></td>
                     </tr>
                 </table>
             </div>
