@@ -40,6 +40,7 @@ th,  td {
         this._pointsPerTurn = [];
         this._hasDoubledOn = !mustDoubleIn;
         this._startingScore = startingScore;
+        this._dartsThrown = 0;
     }
 
     PlayerScorecard.prototype.recordPoints = function(pointsScored) {
@@ -66,6 +67,14 @@ th,  td {
         return this._hasDoubledOn;
     }
 
+    PlayerScorecard.prototype.addNumberOfDartsThrown = function(numberOfDartsThrown) {
+        this._dartsThrown += numberOfDartsThrown;
+    }
+
+    PlayerScorecard.prototype.numberOfDartsThrown = function() {
+        return this._dartsThrown;
+    }
+
     PlayerScorecard.prototype.pointsRemaining = function() {
         return this._startingScore - this._points;
     }
@@ -77,6 +86,10 @@ th,  td {
     }
 
     DartThrow.prototype.number = function() {
+        if(this._dartScore == 'X') {
+            return 0;
+        }
+
         if(this._dartScore.indexOf('B') != -1) {
             return 25;
         }
@@ -120,15 +133,7 @@ th,  td {
         this._turns[1] = [];
     }
 
-    OhOneGame.prototype.startingScore = function() {
-        return this._startingScore;
-    }
-
-    OhOneGame.prototype.recordTurn = function(playerIndex, dartScores) {
-        this._turns[playerIndex].push(dartScores);
-
-        var playerCard = this._players[playerIndex];
-
+    OhOneGame.prototype._calculatePoints = function(playerScorecard, dartScores) {
         var pointsScored = 0;
 
         for(var i = 0; i < dartScores.length; i++) {
@@ -137,11 +142,11 @@ th,  td {
             var dartThrow = new DartThrow(dartScore);
 
             if(dartThrow.isADouble()) {
-                playerCard.setHasDoubledOn(true);
+                playerScorecard.setHasDoubledOn(true);
             }
 
-            if(playerCard.hasDoubledOn() && playerCard.pointsRemaining() > 0) {
-                var pointsRemainingAfterThrow = playerCard.pointsRemaining() - pointsScored - dartThrow.points();
+            if(playerScorecard.hasDoubledOn() && playerScorecard.pointsRemaining() > 0) {
+                var pointsRemainingAfterThrow = playerScorecard.pointsRemaining() - pointsScored - dartThrow.points();
 
                 if(pointsRemainingAfterThrow > 1 ) {
                     pointsScored += dartThrow.points();
@@ -155,7 +160,20 @@ th,  td {
             }
         }
 
-        playerCard.recordPoints(pointsScored);
+        return pointsScored;
+    }
+
+    OhOneGame.prototype.startingScore = function() {
+        return this._startingScore;
+    }
+
+    OhOneGame.prototype.recordTurn = function(playerIndex, dartScores) {
+        this._turns[playerIndex].push(dartScores);
+        var playerScorecard = this._players[playerIndex];
+        var pointsScored = this._calculatePoints(playerScorecard, dartScores);
+
+        playerScorecard.recordPoints(pointsScored);
+        playerScorecard.addNumberOfDartsThrown(dartScores.length);
     }
 
     OhOneGame.prototype.isGameOver = function() {
@@ -239,17 +257,22 @@ th,  td {
         }
     }
 
-    GameLogUI.prototype._updatePointsPerTurn = function() {
+    GameLogUI.prototype._updatePlayerStats = function() {
         var player1Scorecard = this._game.scorecardForPlayer(0);
         var player1PointsPerTurn = player1Scorecard.pointsPerTurn();
         player1PointsPerTurn = Math.round(player1PointsPerTurn * 100) / 100;
+        player1DartsThrown = player1Scorecard.numberOfDartsThrown();
 
         var player2Scorecard = this._game.scorecardForPlayer(1);
         var player2PointsPerTurn = player2Scorecard.pointsPerTurn();
         player2PointsPerTurn = Math.round(player2PointsPerTurn * 100) / 100;
+        player2DartsThrown = player2Scorecard.numberOfDartsThrown();
 
         $('#p0-ppt').text(player1PointsPerTurn + ' ppt');
+        $('#p0-ppt').append('<br/>' + player1DartsThrown + ' darts');
+
         $('#p1-ppt').text(player2PointsPerTurn + ' ppt');
+        $('#p1-ppt').append('<br/>' + player2DartsThrown + ' darts');
     }
 
     GameLogUI.prototype.show = function() {
@@ -258,7 +281,7 @@ th,  td {
 
     GameLogUI.prototype.refresh = function() {
         this._drawTurns();
-        this._updatePointsPerTurn();
+        this._updatePlayerStats();
     }
 
     //----------------------------------------------
@@ -305,6 +328,10 @@ th,  td {
         this._dartboard = new DartboardUI(this._onDartThrown.bind(this));
         this._dartboard.init();
 
+        $('#missed-dart').on('click', function() {
+            this._onDartThrown('X');
+        }.bind(this));
+
         $('#clear-current-throw').on('click', function() {
             this._currentThrow.val('');
         }.bind(this));
@@ -349,6 +376,7 @@ th,  td {
     <div class="col-md-8 text-center">
         <div id="current-throw-container" class="alert alert-info" style="margin-bottom: 0; padding: 5px">
             Player <span id="current-player-label"></span>: <input type="text" id="current-throw" readonly/>
+            <button type="button" id="missed-dart" class="btn btn-default btn-xs">Miss</button>
             <button type="button" id="clear-current-throw" class="btn btn-default btn-xs">Clear</button>
             <button type="button" id="record-current-throw" class="btn btn-primary btn-xs">Go</button>
         </div>
