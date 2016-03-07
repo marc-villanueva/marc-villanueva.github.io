@@ -53,11 +53,13 @@
 
     DartLogger.prototype.init = function() {
         var entries = Cookies.getJSON('dart-logger-entries');
-        for(var i = 0; i < entries.length; i++) {
-            entries[i].date = new Date(entries[i].date);
-        }
+        if(entries) {
+            for(var i = 0; i < entries.length; i++) {
+                entries[i].date = new Date(entries[i].date);
+            }
 
-        this._logEntries = entries;
+            this._logEntries = entries;
+        }
     };
 
     DartLogger.prototype._save = function() {
