@@ -3,7 +3,7 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"></link>
     <style>
         button {
-            width: 150px;
+            width: 100%;
         }
 
         div.main-container {
@@ -239,17 +239,23 @@
         this._type = type;
         this._logger = logger;
 
-        this._button.on('click', function() {
+        this._button.on('click', function(e) {
+            e.preventDefault();
+
             this._logger.addEntry(this._type, new Date());
             this._refresh();
         }.bind(this));
 
-        this._links.on('click', '.remove-entry', function() {
+        this._links.on('click', '.remove-entry', function(e) {
+            e.preventDefault();
+
             this._logger.removeLatestEntryForType(this._type);
             this._refresh();
         }.bind(this));
 
-        this._links.on('click', '.stats', function() {
+        this._links.on('click', '.stats', function(e) {
+            e.preventDefault();
+
             var statsModal = new StatsModalUi(this._type, this._logger);
             statsModal.open();
         }.bind(this));
