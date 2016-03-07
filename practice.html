@@ -3,7 +3,11 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"></link>
     <style>
         button {
-            width: 100%;
+            width: 200px;
+        }
+
+        button.btn-lg {
+            padding: 30px 16px;
         }
 
         div.main-container {
@@ -215,7 +219,7 @@
         html += '<strong>Entries:</strong><div style="overflow-y: scroll; height:100px;"><table class="table table-striped">';
 
         for(var i = 0; i < stats.entries.length; i++) {
-            html += '<tr><td><small>' + stats.entries[i].date.toDateString() + ' ' + stats.entries[i].date.toLocaleTimeString() + '</small></td></tr>';
+            html += '<tr><td>' + stats.entries[i].date.toDateString() + ' ' + stats.entries[i].date.toLocaleTimeString() + '</td></tr>';
         }
 
         html += '</table></div>';
@@ -300,27 +304,27 @@
 
 <div class="main-container">
     <div class="button-container" id="ton-forty">
-        <button type="button" class="btn btn-large btn-primary">Ton 40</button>
-        <div class="entry-label"><small><span></span></small></div>
-        <div class="hidden links"><small><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></small></div>
+        <button type="button" class="btn btn-lg btn-primary">Ton 40</button>
+        <div class="entry-label"><span></span></div>
+        <div class="hidden links"><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></div>
     </div>
 
     <div class="button-container" id="ton-eighty">
-        <button type="button" class="btn btn-large btn-primary">Ton 80</button><br/>
-        <div class="entry-label"><small><span></span></small></div>
-        <div class="hidden links"><small><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></small></div>
+        <button type="button" class="btn btn-lg btn-primary">Ton 80</button><br/>
+        <div class="entry-label"><span></span></div>
+        <div class="hidden links"><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></div>
     </div>
 
     <div class="button-container" id="round-of-nine">
-        <button type="button" class="btn btn-large btn-primary">Round of 9</button><br/>
-        <div class="entry-label"><small><span></span></small></div>
-        <div class="hidden links"><small><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></small></div>
+        <button type="button" class="btn btn-lg btn-primary">Round of 9</button><br/>
+        <div class="entry-label"><span></span></div>
+        <div class="hidden links"><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></div>
     </div>
 
    <div class="button-container" id="hat-trick">
-        <button type="button" class="btn btn-large btn-primary">Hat Trick</button><br/>
-        <div class="entry-label"><small><span></span></small></div>
-        <div class="hidden links"><small><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></small></div>
+        <button type="button" class="btn btn-lg btn-primary">Hat Trick</button><br/>
+        <div class="entry-label"><span></span></div>
+        <div class="hidden links"><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></div>
     </div>
 </div>
 
