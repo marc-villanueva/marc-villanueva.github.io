@@ -32,12 +32,16 @@
     }
 
     DartLogger.Types = {
+        Ton: 0,
         TonEighty: 1,
         TonForty: 2,
         RoundOfNine: 3,
         HatTrick: 4,
         DeadEye: 5,
         toString: function(type) {
+            if(type == DartLogger.Types.Ton) {
+                return "Ton";
+            }
             if(type == DartLogger.Types.TonEighty) {
                 return "Ton Eighty";
             }
@@ -132,8 +136,8 @@
     DartLoggerStats.prototype.getStats = function() {
         var stats = {
             totalThrown: this._getTotalThrown(),
+            totalThrownLastSevenDays: this._getTotalThrownLastSevenDays(),
             timeSinceLastThrown: this._getTimeSinceLastThrown(),
-            averageTimeBetween: this._getAverageTimeBetween(),
             entries: this._entries
         };
 
@@ -153,19 +157,18 @@
         }
     };
 
-    DartLoggerStats.prototype._getAverageTimeBetween = function() {
-        if(this._entries.length > 1) {
-            var totalTime = 0;
+    DartLoggerStats.prototype._getTotalThrownLastSevenDays = function() {
+        var sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        var counter = 0;
 
-            for(var i = 1; i < this._entries.length; i++) {
-                totalTime += (this._entries[i - 1].date - this._entries[i].date) / 1000;
+        for(var i = 0; i < this._entries.length; i++) {
+            if(this._entries[i].date > sevenDaysAgo) {
+                counter++;
             }
-
-            return totalTime / (this._entries.length - 1);
-
-        } else {
-            return null;
         }
+
+        return counter;
     };
 
     //----------------------------------------------
@@ -200,7 +203,7 @@
 
     StatsModalUi.prototype._secondsToHoursMinutes = function(seconds) {
         var hours = parseInt(seconds / 3600);
-        var minutes = parseInt(seconds / 60);
+        var minutes =  parseInt((seconds % 3600) / 60);
 
         return hours + ' hours ' + minutes + ' minutes';
     };
@@ -214,9 +217,8 @@
         var stats = new DartLoggerStats(entries).getStats();
 
         var html = '<p><strong>Total thrown:</strong><br/>' + stats.totalThrown + '</p>';
+        html += '<p><strong>Total thrown last 7 days:</strong><br/>' + stats.totalThrownLastSevenDays + '</p>';
         html += '<p><strong>Time since last one:</strong><br/>' + this._secondsToHoursMinutes(stats.timeSinceLastThrown) + '</p>';
-        html += '<p><strong>Average time between occurrences:</strong><br/>' + this._secondsToHoursMinutes(stats.averageTimeBetween) + '</p>';
-
         html += '<strong>Entries:</strong><div style="overflow-y: scroll; height:100px;"><table class="table table-striped">';
 
         for(var i = 0; i < stats.entries.length; i++) {
@@ -293,6 +295,7 @@
         var logger = new DartLogger();
         logger.init();
 
+        new LogEntryButtonUi('#ton', DartLogger.Types.Ton, logger);
         new LogEntryButtonUi('#ton-forty', DartLogger.Types.TonForty, logger);
         new LogEntryButtonUi('#ton-eighty', DartLogger.Types.TonEighty, logger);
         new LogEntryButtonUi('#round-of-nine', DartLogger.Types.RoundOfNine, logger);
@@ -304,6 +307,11 @@
 <body>
 
 <div class="main-container">
+    <div class="button-container" id="ton">
+        <button type="button" class="btn btn-lg btn-primary">Ton</button>
+        <div class="entry-label"><span></span></div>
+        <div class="hidden links"><a href="#" class="remove-entry">Remove Last</a> | <a href="#" class="stats">Stats</a></div>
+    </div>
     <div class="button-container" id="ton-forty">
         <button type="button" class="btn btn-lg btn-primary">Ton 40</button>
         <div class="entry-label"><span></span></div>
