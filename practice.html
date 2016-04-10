@@ -27,6 +27,31 @@
 
     <script type="text/javascript">
 
+    var DataStorage = (function(window) {
+        var storage = window.localStorage;
+
+        function getItem(key) {
+            var item = storage.getItem(key);
+
+            if(item) {
+                return JSON.parse(item);
+            } else {
+                return Cookies.getJSON('dart-logger-entries');
+            }
+        }
+
+        function setItem(key, obj) {
+            storage.setItem(key, JSON.stringify(obj));
+        }
+
+        return {
+            getItem: getItem,
+            setItem: setItem
+        };
+    }(window));
+
+    //----------------------------------------------
+
     function DartLogger() {
         this._logEntries = [];
     }
@@ -61,7 +86,7 @@
     };
 
     DartLogger.prototype.init = function() {
-        var entries = Cookies.getJSON('dart-logger-entries');
+        var entries = DataStorage.getItem('dart-logger-entries');
         if(entries) {
             for(var i = 0; i < entries.length; i++) {
                 entries[i].date = new Date(entries[i].date);
@@ -72,7 +97,7 @@
     };
 
     DartLogger.prototype._save = function() {
-        Cookies.set('dart-logger-entries', this._logEntries, { expires: 365 });
+        DataStorage.setItem('dart-logger-entries', this._logEntries);
     };
 
     DartLogger.prototype.addEntry = function(type, date) {
